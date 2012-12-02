@@ -1,0 +1,233 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * Provides a default page to explain what this module does.
+ */
+function limaiocharts_menu()
+{
+    $items['data/linecharts'] = array(
+        'page callback' => 'limaiocharts_source_page',
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    $items['data/linecharts/%'] = array(
+        'page callback' => 'limaiocharts_content_block',
+        'page arguments' => array(2),
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+function limaiocharts_block_info()
+{
+
+    $blocks['limaiocharts_block_temperatura'] = array(
+        'info' => t('Bloque de Temperatura')
+    );
+
+    $blocks['limaiocharts_block_humedad'] = array(
+        'info' => t('Bloque de Humedad')
+    );
+
+    $blocks['limaiocharts_block_uv'] = array(
+        'info' => t('Bloque de Radiación UV')
+    );
+
+    $blocks['limaiocharts_block_ruido'] = array(
+        'info' => t('Bloque de Ruido')
+    );
+
+    $blocks['limaiocharts_block_polvo'] = array(
+        'info' => t('Bloque de Polvo')
+    );
+
+    $blocks['limaiocharts_block_gases'] = array(
+        'info' => t('Bloque de Gases')
+    );
+
+
+    return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function limaiocharts_block_view($delta = '')
+{
+
+    $block['subject'] = t('Block: ' . $delta);
+    $block['content'] = limaiocharts_content_block($delta);
+
+    return $block;
+}
+
+function limaiocharts_theme($existing, $type, $theme, $path)
+{
+    return array(
+        'limaiocharts' => array(
+            'variables' => array('data' => NULL),
+            'template' => 'limaiocharts'
+        ),
+        'limaiochartsBlock' => array(
+            'variables' => array('data' => NULL),
+            'template' => 'limaiochartsBlock'
+        )
+    );
+}
+
+function limaiocharts_source_page()
+{
+
+    $query = db_select('node', 'n');
+    $query->innerJoin('taxonomy_index', 'tx', 'n.nid=tx.nid');
+    $query->innerJoin('field_data_field_date', 'date', 'date.entity_id=n.nid');
+    $query->innerJoin('field_data_field_temperature', 'temp', 'temp.entity_id=n.nid');
+    $query->innerJoin('field_data_field_humidity', 'hum', 'hum.entity_id=n.nid');
+    $query->innerJoin('field_data_field_noise', 'noise', 'noise.entity_id=n.nid');
+    $query->innerJoin('field_data_field_uv', 'uv', 'uv.entity_id=n.nid');
+    $query->innerJoin('field_data_field_dust', 'dust', 'dust.entity_id=n.nid');
+    $query->addField('tx', 'tid');
+    $query->addField('n', 'nid');
+    $query->addField('date', 'field_date_value', 'fecha');
+    $query->addField('temp', 'field_temperature_value', 'temp');
+    $query->addField('hum', 'field_humidity_value', 'humedad');
+    $query->addField('noise', 'field_noise_value', 'ruido');
+    $query->addField('uv', 'field_uv_value', 'radiacion');
+    $query->addField('dust', 'field_dust_value', 'polvo');
+    $query->condition('tx.tid', 1, '=');
+
+    $result = $query->execute();
+
+
+    return theme('limaiocharts', array('data' => $result));
+}
+
+function limaiocharts_content_block($delta = "")
+{
+
+    $query = db_select('taxonomy_term_data', 'td');
+    $query->addField('td', 'tid');
+    $query->addField('td', 'name');
+    $result = $query->execute();
+
+    $rows = array();
+
+    $index = 0;
+
+    $rows[0][0] = "Fecha";
+
+    while ($row = $result->fetch()) {
+
+        $querySensor = db_select('node', 'n');
+        $querySensor->innerJoin('taxonomy_index', 'tx', 'n.nid=tx.nid');
+        $querySensor->innerJoin('field_data_field_date', 'date', 'date.entity_id=n.nid');
+
+        switch ($delta) {
+            case 'limaiocharts_block_humedad':
+
+                $querySensor->innerJoin('field_data_field_humidity', 'hum', 'hum.entity_id=n.nid');
+                $querySensor->addField('hum', 'field_humidity_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_temperatura':
+
+                $querySensor->innerJoin('field_data_field_temperature', 'temp', 'temp.entity_id=n.nid');
+                $querySensor->addField('temp', 'field_temperature_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_uv':
+
+                $querySensor->innerJoin('field_data_field_uv', 'uv', 'uv.entity_id=n.nid');
+                $querySensor->addField('uv', 'field_uv_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_ruido':
+
+                $querySensor->innerJoin('field_data_field_noise', 'noise', 'noise.entity_id=n.nid');
+                $querySensor->addField('noise', 'field_noise_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_polvo':
+
+                $querySensor->innerJoin('field_data_field_dust', 'dust', 'dust.entity_id=n.nid');
+                $querySensor->addField('dust', 'field_dust_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_gases':
+
+                $querySensor->innerJoin('field_data_field_gases', 'gases', 'gases.entity_id=n.nid');
+                $querySensor->addField('gases', 'field_gases_value', 'value');
+
+                break;
+        }
+
+        $querySensor->addField('tx', 'tid');
+        $querySensor->addField('n', 'nid');
+        $querySensor->addField('date', 'field_date_value', 'fecha');
+        $querySensor->condition('tx.tid', $row->tid, '=');
+        $querySensor->orderBy('date.field_date_value', 'asc');
+        $resultSensor = $querySensor->execute();
+
+        $indexSensor = 1;
+
+        $rows[0][$index + 1] = $row->name;
+
+        while ($rowSensor = $resultSensor->fetch()) {
+            $fecha = date('d-m-Y h:i', $rowSensor->fecha);
+
+            $rows[$indexSensor][0] = $fecha;
+
+
+            $rows[$indexSensor][$index + 1] = $rowSensor->value;
+
+            $indexSensor++;
+        }
+
+
+
+        $index++;
+    }
+
+    $output = "";
+
+    $g = array();
+
+    foreach ($rows as $ind => $val) {
+
+        $o = array();
+
+        foreach ($val as $v) {
+            if (is_numeric($v)) {
+                $o[] = "{$v}";
+            } else {
+                $o[] = "'{$v}'";
+            }
+        }
+
+        $g[] = "[" . implode(',', $o) . "]";
+    }
+
+    $output = implode(',', $g);
+
+    //print_r(array_values($rows));
+
+    return theme('limaiochartsBlock', array('data' => $output));
+}

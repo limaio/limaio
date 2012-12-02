@@ -19,7 +19,7 @@ function limaiocharts_menu()
     );
 
     $items['data/linecharts/%'] = array(
-        'page callback' => 'limaiocharts_content_block',
+        'page callback' => 'limaiocharts_content_page',
         'page arguments' => array(2),
         'access callback' => TRUE,
         'access arguments' => array('access content'),
@@ -82,7 +82,7 @@ function limaiocharts_theme($existing, $type, $theme, $path)
             'template' => 'limaiocharts'
         ),
         'limaiochartsBlock' => array(
-            'variables' => array('data' => NULL),
+            'variables' => array('data' => NULL, 'name' => NULL),
             'template' => 'limaiochartsBlock'
         )
     );
@@ -183,7 +183,9 @@ function limaiocharts_content_block($delta = "")
         $querySensor->addField('n', 'nid');
         $querySensor->addField('date', 'field_date_value', 'fecha');
         $querySensor->condition('tx.tid', $row->tid, '=');
-        $querySensor->orderBy('date.field_date_value', 'asc');
+        $querySensor->condition('tx.tid', $row->tid, '=');
+        $querySensor->orderBy('date.field_date_value', 'desc');
+        $querySensor->range(0,30);
         $resultSensor = $querySensor->execute();
 
         $indexSensor = 1;
@@ -229,5 +231,124 @@ function limaiocharts_content_block($delta = "")
 
     //print_r(array_values($rows));
 
-    return theme('limaiochartsBlock', array('data' => $output));
+    return theme('limaiochartsBlock', array('data' => $output, 'name' => $delta));
+}
+
+function limaiocharts_content_page($delta = "")
+{
+
+    $query = db_select('taxonomy_term_data', 'td');
+    $query->addField('td', 'tid');
+    $query->addField('td', 'name');
+    $result = $query->execute();
+
+    $rows = array();
+
+    $index = 0;
+
+    $rows[0][0] = "Fecha";
+
+    while ($row = $result->fetch()) {
+
+        $querySensor = db_select('node', 'n');
+        $querySensor->innerJoin('taxonomy_index', 'tx', 'n.nid=tx.nid');
+        $querySensor->innerJoin('field_data_field_date', 'date', 'date.entity_id=n.nid');
+
+        switch ($delta) {
+            case 'limaiocharts_block_humedad':
+
+                $querySensor->innerJoin('field_data_field_humidity', 'hum', 'hum.entity_id=n.nid');
+                $querySensor->addField('hum', 'field_humidity_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_temperatura':
+
+                $querySensor->innerJoin('field_data_field_temperature', 'temp', 'temp.entity_id=n.nid');
+                $querySensor->addField('temp', 'field_temperature_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_uv':
+
+                $querySensor->innerJoin('field_data_field_uv', 'uv', 'uv.entity_id=n.nid');
+                $querySensor->addField('uv', 'field_uv_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_ruido':
+
+                $querySensor->innerJoin('field_data_field_noise', 'noise', 'noise.entity_id=n.nid');
+                $querySensor->addField('noise', 'field_noise_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_polvo':
+
+                $querySensor->innerJoin('field_data_field_dust', 'dust', 'dust.entity_id=n.nid');
+                $querySensor->addField('dust', 'field_dust_value', 'value');
+
+                break;
+
+            case 'limaiocharts_block_gases':
+
+                $querySensor->innerJoin('field_data_field_gases', 'gases', 'gases.entity_id=n.nid');
+                $querySensor->addField('gases', 'field_gases_value', 'value');
+
+                break;
+        }
+
+        $querySensor->addField('tx', 'tid');
+        $querySensor->addField('n', 'nid');
+        $querySensor->addField('date', 'field_date_value', 'fecha');
+        $querySensor->condition('tx.tid', $row->tid, '=');
+        $querySensor->condition('tx.tid', $row->tid, '=');
+        $querySensor->orderBy('date.field_date_value', 'desc');
+        $querySensor->range(0,30);
+        $resultSensor = $querySensor->execute();
+
+        $indexSensor = 1;
+
+        $rows[0][$index + 1] = $row->name;
+
+        while ($rowSensor = $resultSensor->fetch()) {
+            $fecha = date('d-m-Y h:i', $rowSensor->fecha);
+
+            $rows[$indexSensor][0] = $fecha;
+
+
+            $rows[$indexSensor][$index + 1] = $rowSensor->value;
+
+            $indexSensor++;
+        }
+
+
+
+        $index++;
+    }
+
+    $output = "";
+
+    $g = array();
+
+    foreach ($rows as $ind => $val) {
+
+        $o = array();
+
+        foreach ($val as $v) {
+            if (is_numeric($v)) {
+                $o[] = "{$v}";
+            } else {
+                $o[] = "'{$v}'";
+            }
+        }
+
+        $g[] = "[" . implode(',', $o) . "]";
+    }
+
+    $output = implode(',', $g);
+
+    //print_r(array_values($rows));
+
+    return theme('limaiocharts', array('data' => $output));
 }

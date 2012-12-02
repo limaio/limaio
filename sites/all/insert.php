@@ -51,7 +51,7 @@ if($sensor6 <= 3500){
     $dust = 0.5;
 }
 
-$data_string = '{"type":"input","field_date":{"und":[{"value":{"date":"' . $fecha . '"}}]},"field_temperature":{"und":[{"value":"' . $sensor1 . '"}]},"field_humidity":{"und":[{"value":"' . $sensor2 . '"}]},"field_uv":{"und":[{"value":"' . $uv . '"}]},"field_dust":{"und":[{"value":"' . $sensor6 . '"}]},"field_gases":{"und":[{"value":"' . $sensor5 . '"}]},"field_noise":{"und":[{"value":"' . $decibelios . '"}]},"field_module":{"und":"Escuelab"}}';
+$data_string = '{"type":"input","field_date":{"und":[{"value":{"date":"' . $fecha . '"}}]},"field_temperature":{"und":[{"value":"' . $sensor1 . '"}]},"field_humidity":{"und":[{"value":"' . $sensor2 . '"}]},"field_uv":{"und":[{"value":"' . $uv . '"}]},"field_dust":{"und":[{"value":"' . $dust . '"}]},"field_gases":{"und":[{"value":"' . $sensor5 . '"}]},"field_noise":{"und":[{"value":"' . $decibelios . '"}]},"field_module":{"und":"Escuelab"}}';
 
 $ch = curl_init('http://limaio.innovacion.pe/rest/node');
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");

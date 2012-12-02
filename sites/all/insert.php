@@ -44,7 +44,7 @@ if($uv < 0){
     $uv = round(($uv)*12/22,2);
 }*/
 
-$uv = round($sensor3*500/1024,2);
+$uv = round(($sensor3-25)*500/1024,2);
 
 $sensor6 = $sensor6*5/1024;
 if($sensor6 <= 3.5){

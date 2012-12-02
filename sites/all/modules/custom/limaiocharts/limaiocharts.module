@@ -129,6 +129,14 @@ function limaiocharts_content_block($delta = "")
 
     $rows[0][0] = "Fecha";
 
+    $count = db_select('taxonomy_index', 'tx');
+    $count->addExpression('count(*)', 'cant');
+    $resultCount = $count->execute()->fetch()->cant;
+    $cantNodes = 20;
+    $startNodes = ($resultCount - $cantNodes);
+
+    watchdog('warning', "Cantidad de nodos " . $resultCount . " - " . $startNodes);
+
     while ($row = $result->fetch()) {
 
         $querySensor = db_select('node', 'n');
@@ -181,11 +189,11 @@ function limaiocharts_content_block($delta = "")
 
         $querySensor->addField('tx', 'tid');
         $querySensor->addField('n', 'nid');
-        $querySensor->addField('date', 'field_date_value', 'fecha');
+        $querySensor->addExpression("from_unixtime(n.created,'%H:%i')", 'fecha');
         $querySensor->condition('tx.tid', $row->tid, '=');
         $querySensor->condition('tx.tid', $row->tid, '=');
-        $querySensor->orderBy('date.field_date_value', 'desc');
-        $querySensor->range(0,30);
+        $querySensor->orderBy('n.created', 'asc');
+        $querySensor->range($startNodes, $cantNodes);
         $resultSensor = $querySensor->execute();
 
         $indexSensor = 1;
@@ -193,7 +201,7 @@ function limaiocharts_content_block($delta = "")
         $rows[0][$index + 1] = $row->name;
 
         while ($rowSensor = $resultSensor->fetch()) {
-            $fecha = date('d-m-Y h:i', $rowSensor->fecha);
+            $fecha = $rowSensor->fecha;
 
             $rows[$indexSensor][0] = $fecha;
 
@@ -236,6 +244,14 @@ function limaiocharts_content_block($delta = "")
 
 function limaiocharts_content_page($delta = "")
 {
+
+    $count = db_select('taxonomy_index', 'tx');
+    $count->addExpression('count(*)', 'cant');
+    $resultCount = $count->execute()->fetch()->cant;
+    $cantNodes = 20;
+    $startNodes = ($resultCount - $cantNodes);
+
+    watchdog('warning', "Cantidad de nodos " . $resultCount . " - " . $startNodes);
 
     $query = db_select('taxonomy_term_data', 'td');
     $query->addField('td', 'tid');
@@ -300,11 +316,11 @@ function limaiocharts_content_page($delta = "")
 
         $querySensor->addField('tx', 'tid');
         $querySensor->addField('n', 'nid');
-        $querySensor->addField('date', 'field_date_value', 'fecha');
+        $querySensor->addExpression("from_unixtime(n.created,'%H:%i')", 'fecha');
         $querySensor->condition('tx.tid', $row->tid, '=');
         $querySensor->condition('tx.tid', $row->tid, '=');
-        $querySensor->orderBy('date.field_date_value', 'desc');
-        $querySensor->range(0,30);
+        $querySensor->orderBy('n.created', 'asc');
+        $querySensor->range($startNodes, $cantNodes);
         $resultSensor = $querySensor->execute();
 
         $indexSensor = 1;
@@ -312,7 +328,7 @@ function limaiocharts_content_page($delta = "")
         $rows[0][$index + 1] = $row->name;
 
         while ($rowSensor = $resultSensor->fetch()) {
-            $fecha = date('d-m-Y h:i', $rowSensor->fecha);
+            $fecha = $rowSensor->fecha;
 
             $rows[$indexSensor][0] = $fecha;
 

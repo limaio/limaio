@@ -37,8 +37,21 @@ if ($sensor4 >= 400 && $sensor4 < 450) {
     $decibelios = 50;
 }
 //*print $decibelios;
+/*$uv = $sensor3 -35;
+if($uv < 0){
+    $uv = 0;
+}else{
+    $uv = round(($uv)*12/22,2);
+}*/
 
-$data_string = '{"type":"input","field_date":{"und":[{"value":{"date":"' . $fecha . '"}}]},"field_temperature":{"und":[{"value":"' . $sensor1 . '"}]},"field_humidity":{"und":[{"value":"' . $sensor2 . '"}]},"field_uv":{"und":[{"value":"' . $sensor3 . '"}]},"field_dust":{"und":[{"value":"' . $sensor6 . '"}]},"field_gases":{"und":[{"value":"' . $sensor5 . '"}]},"field_noise":{"und":[{"value":"' . $decibelios . '"}]},"field_module":{"und":"Escuelab"}}';
+$uv = $sensor3/10;
+if($sensor6 <= 3500){
+    $dust = round($sensor6*0.00015-0.05,2);
+}else{
+    $dust = 0.5;
+}
+
+$data_string = '{"type":"input","field_date":{"und":[{"value":{"date":"' . $fecha . '"}}]},"field_temperature":{"und":[{"value":"' . $sensor1 . '"}]},"field_humidity":{"und":[{"value":"' . $sensor2 . '"}]},"field_uv":{"und":[{"value":"' . $uv . '"}]},"field_dust":{"und":[{"value":"' . $dust . '"}]},"field_gases":{"und":[{"value":"' . $sensor5 . '"}]},"field_noise":{"und":[{"value":"' . $decibelios . '"}]},"field_module":{"und":"Escuelab"}}';
 
 $ch = curl_init('http://limaio.innovacion.pe/rest/node');
 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");

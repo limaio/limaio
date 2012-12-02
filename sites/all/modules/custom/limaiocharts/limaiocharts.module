@@ -275,14 +275,16 @@ function limaiocharts_content_page($delta = "")
 
                 $querySensor->innerJoin('field_data_field_humidity', 'hum', 'hum.entity_id=n.nid');
                 $querySensor->addField('hum', 'field_humidity_value', 'value');
-
+                $cantNodes = 50;
+                $startNodes = ($resultCount - $cantNodes);
                 break;
 
             case 'limaiocharts_block_temperatura':
 
                 $querySensor->innerJoin('field_data_field_temperature', 'temp', 'temp.entity_id=n.nid');
                 $querySensor->addField('temp', 'field_temperature_value', 'value');
-
+                $cantNodes = 50;
+                $startNodes = ($resultCount - $cantNodes);
                 break;
 
             case 'limaiocharts_block_uv':

@@ -11,7 +11,7 @@
         new google.visualization.LineChart(document.getElementById('<?php print $name ?>')).
             draw(data, {curveType: "function",
             width: 250, height: 200,pointSize: 5,
-            vAxis: {maxValue: 36},color: '#333'}
+            vAxis: {maxValue: 36}}
     );
     }
       

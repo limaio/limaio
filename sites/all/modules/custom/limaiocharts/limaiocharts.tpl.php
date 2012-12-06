@@ -10,8 +10,8 @@
         // Create and draw the visualization.
         new google.visualization.LineChart(document.getElementById('visualization')).
             draw(data, {curveType: "function",
-            width: 800, height: 700,pointSize: 5,
-            vAxis: {maxValue: 30}}
+            width: 500, height: 400,pointSize: 5,
+            vAxis: {maxValue: 10}}
     );
     }
       

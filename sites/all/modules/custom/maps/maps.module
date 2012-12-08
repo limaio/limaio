@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * @file
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * Provides a default page to explain what this module does.
+ */
+function maps_menu() {
+    $items['home-piggito'] = array(
+        'page callback' => 'maps_frontpage',
+        'access callback' => TRUE,
+        'access arguments' => array('access content'),
+        'type' => MENU_CALLBACK,
+    );
+
+    return $items;
+}
+
+function maps_frontpage() {
+    $rs = db_query("select a.tid,b.name,c.field_geolocation_lat as lat, c.field_geolocation_lon as lon, max(a.nid) as nid
+        from taxonomy_index a
+        inner join taxonomy_term_data b
+        on a.tid = b.tid
+        inner join field_data_field_geolocation c
+        on a.tid = c.entity_id
+        where b.vid = 2
+        group by a.tid,b.name,c.field_geolocation_lat, c.field_geolocation_lon");
+
+    $rows = array();
+    $nids = array();
+    while ($row = $rs->fetchObject()) {
+        $rows[$row->nid] = $row;
+        $nids[] = $row->nid;
+    }
+
+    $rs2 = db_query("select a.entity_id as nid,a.field_temperature_value, b.field_noise_value,c.field_humidity_value,d.field_dust_value,e.field_gases_value,f.field_uv_value
+        from field_data_field_temperature a
+        inner join field_data_field_noise b
+        on a.entity_id = b.entity_id
+        inner join field_data_field_humidity c
+        on a.entity_id = c.entity_id
+        inner join field_data_field_dust d
+        on a.entity_id = d.entity_id
+        inner join field_data_field_gases e
+        on a.entity_id = e.entity_id
+        inner join field_data_field_uv f
+        on a.entity_id = f.entity_id
+        where a.entity_id in (:nids)", array(':nids' => $nids));
+
+    $content = 'function initialize() {
+        if (GBrowserIsCompatible()) {
+            var map = new GMap2(document.getElementById("map_canvas"));
+            map.setCenter(new GLatLng(37.4419, -122.1419), 13);';
+
+    while ($row2 = $rs2->fetchObject()) {
+        $modulo = $rows[$row2->nid];
+        $content .= 'var point = new GLatLng(' . $modulo->lat . ',' . $modulo->lon . ');';
+        $content .= 'map.addOverlay(new GMarker(point));';
+    }
+    $content .= '}}';
+    drupal_add_html_head(array(
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#attributes' => array(
+            'type' => 'text/javascript',
+            'src' => 'http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;',
+        ),
+        '#value' => '',
+        '#weight' => 1000,
+            ), 'gmaps');
+
+    drupal_add_html_head(array(
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#attributes' => array(
+            'type' => 'text/javascript',
+        ),
+        '#value' => $content,
+        '#weight' => 1001,
+            ), 'gmaps-piggito');
+    
+    drupal_add_html_head(array(
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#attributes' => array(
+            'type' => 'text/javascript',
+        ),
+        '#value' => 'initialize()',
+        '#weight' => 1002,
+            ), 'gmaps-init');
+
+
+    return '<div id="map_canvas" style="width: 500px; height: 300px"></div>';
+}

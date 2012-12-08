@@ -1603,3 +1603,51 @@ text-shadow: 0 1px 0 #37290c;
 /* Resize */
 
 .resize { background: url(../images/resize.png) repeat scroll 0 0 transparent; bottom: 0; height: 80px; position: fixed; right: 0;  width: 80px; z-index:1; }
+
+/* modulos de sensores */
+
+.map-module{
+    float: left;
+    margin-right: 20px;
+    width: 300px;
+}
+.direccion{
+    font-size: 14px;
+    font-weight: bold;
+    width: 300px;
+     float: left;
+}
+
+.sensores{
+    float: right;
+    width: 265px;
+}
+
+.item-sensor{
+    font-size: 14px;
+    float: left;
+    font-size: 20px;
+    text-align: center;
+    margin: 3px;
+    border: solid 1px #7ad733;
+    width: 80px;
+}
+
+.item-sensor span{
+   font-size: 20px;
+   font-weight: bold;
+   background: #7ad733;
+   color: white;
+   display: block;
+   padding: 10px 5px;
+}
+
+
+.item-sensor .sensor-value{
+   font-size: 20px;
+   font-weight: bold;
+   background: none;
+   color: #7ad733;
+   display: block;
+    padding: 10px 5px;
+}
